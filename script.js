@@ -1,166 +1,51 @@
-const header = [
-  ["first name", "text"],
-  ["last name", "text"],
-  ["age", "number"],
-  ["salary", "number"],
-];
+const container = document.createElement("div");
+container.setAttribute("class", "container");
+container.style.display = "flex";
+container.style.flexDirection = "column";
+document.body.appendChild(container);
 
-let tableData = [];
+const addImgRow = () => {
+  let numberOfIterations;
+  if (window.innerWidth > 335 && window.innerWidth <= 525)
+    numberOfIterations = 3; 
+  else if(window.innerWidth <= 335)
+  numberOfIterations = 2;
+  else
+  numberOfIterations =4;
 
-let table = document.createElement("div");
-
-table.setAttribute("class", "container");
-
-let headerRow = document.createElement("div");
-
-headerRow.setAttribute("class", "headerRow");
-
-const createTable = () => {
-  header.forEach((heading,index) => {
-    let th = document.createElement("div");
-    th.setAttribute("class", "cell");
-    th.innerText = heading[0];
-    const button = document.createElement("button");
-    button.innerText = "sort";
-    button.style.float = "right";
-    button.setAttribute("onclick", "sortTableData(" + index +")");
-    th.append(button);
-    headerRow.append(th);
-  });
-  table.append(headerRow);
-  document.body.append(table);
-};
-
-const createRow = () => {
-  let newRow = document.createElement("div");
-  newRow.setAttribute("class", "row");
-  newRow.setAttribute("draggable", "true");
-  header.forEach((heading) => {
-    let td = document.createElement("div");
-    td.setAttribute("class", "cell");
-    let input = document.createElement("input");
-    input.setAttribute("type", heading[1]);
-    input.setAttribute("value", "");
-    input.setAttribute("oninput", "isRowFull(event)");
-    td.append(input);
-    newRow.append(td);
-  });
-  table.appendChild(newRow);
-
-  newRow.addEventListener("dragstart", handleDragStart);
-  newRow.addEventListener("dragover", handleDragOver);
-  newRow.addEventListener("drop", handleDrop);
-};
-
-// Drag start event handler
-let dragdata = []
-let dragRow;
-const handleDragStart = (event) => {
-  dragRow = event.target;
-  for(let i = 0 ; i < header.length; i++){
-    dragdata.push(dragRow.children[i].children[0].value)
+  const imgRow = document.createElement("div");
+  imgRow.style.display = "flex";
+  imgRow.style.margin = "15px";
+  imgRow.style.justifyContent = "space-between";
+  for (i = 0; i < numberOfIterations; i++) {
+    const div = document.createElement('div')
+    const img = new Image();
+    div.appendChild(img)
+    img.src = "#";
+    img.height = "80";
+    img.width = "80";
+    imgRow.appendChild(div);
   }
+  container.appendChild(imgRow);
 };
 
-// Drag over event handler
-const handleDragOver = (event) => {
-  event.preventDefault();
+const getHeight = (element) => {
+  return parseInt(window.getComputedStyle(element).height);
 };
 
-// Drop event handler
-let dropdata = []
-const handleDrop = (event) => {
-  let dropRow = event.target.closest(".row")
-  event.preventDefault();
-  for(let i = 0 ; i < header.length; i++){
-    dropdata.push(dropRow.children[i].children[0].value)
+const load = ()=>{
+  while (true) {
+  if (getHeight(container) >= window.innerHeight) {
+    break;
   }
-  for(let i = 0; i < header.length; i++){
-    dragRow.children[i].children[0].value = dropdata[i]
-    dropRow.children[i].children[0].value = dragdata[i]
-  }
-  dropdata = []
-  dragdata = []
-  dragRow= "" 
-};
+  addImgRow();
+}
+}
 
-const isRowFull = (event) => {
-  let allFilled = true;
-  const parentChild = event.target.parentElement.parentElement.children;
-  for (const child of parentChild) {
-    if (child.children[0].value === "") allFilled = false;
-  }
-  if (allFilled) {
-    for (const child of parentChild) {
-      child.children[0].removeAttribute("oninput");
-      child.children[0].setAttribute("oninput", "checkLastRow(event)");
-    }
-    createRow();
-  }
-};
+window.addEventListener("scroll", () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight)
+    addImgRow();
+});
 
-const allEmpty = () => {
-  for (let i = 0; i < header.length; i++)
-    if (table.lastElementChild.children[i].children[0].value !== "")
-      return false;
-  return true;
-};
-
-const anyEmpty = (event) => {
-  const parentChild = event.target.parentElement.parentElement.children;
-  for (const child of parentChild)
-    if (child.children[0].value === "") return true;
-  return false;
-};
-
-const checkLastRow = (event) => {
-  const parentChild = event.target.parentElement.parentElement.children;
-  if (allEmpty() && anyEmpty(event)) {
-    table.removeChild(table.lastElementChild);
-    for (const child of parentChild) {
-      child.children[0].removeAttribute("oninput");
-      child.children[0].setAttribute("oninput", "isRowFull(event)");
-    }
-  }
-};
-const allRow = document.getElementsByClassName("row");
-
-const sortTableData = (index) => {
-  tableData = [];
-  //get data and push
-  
-  for(const row of allRow){
-    const  temp= [];
-    for(let i=0;i<row.childElementCount;i++)
-      temp.push(row.children[i].children[0].value)
-    tableData.push(temp)
-  }
-  
-  allEmpty()? tableData.pop() : null;
-  // //sort
-
-  tableData.sort((a, b) => {
-    const first = a[index];
-    const second = b[index];
-    if (isNaN(parseFloat(first)) && isNaN(parseFloat(second))) {
-      return first.toUpperCase() < second.toUpperCase()
-        ? -1
-        : first.toUpperCase() > second.toUpperCase()
-        ? 1
-        : 0;
-    } else {
-      return parseFloat(first) - parseFloat(second);
-    }
-  });
-  //update
-  tableData.forEach((rowData, index) => {
-    rowData.forEach((heading, columnIndex) => {
-      let input = table.children[index+1].children[columnIndex].children[0]
-      input.value = heading;
-    });
-  });
-  tableData = [];
-};
-
-createTable();
-createRow();
+window.addEventListener('load',load);
+window.addEventListener('resize',()=>location.reload());
